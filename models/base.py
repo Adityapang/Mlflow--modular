@@ -3,22 +3,21 @@ from abc import ABC, abstractmethod
 class BaseModel(ABC):
 
     @abstractmethod
-    def train(self, X, y):
+    def fit(self, X, y):
         pass
 
     @abstractmethod
     def predict(self, X):
         pass
 
+    @classmethod
     @abstractmethod
-    def get_model(self):
+    def from_params(cls, params: dict, **kwargs):
+        """Create model from hyperparameters"""
         pass
 
-    @abstractmethod
     def has_feature_importance(self):
         return False
 
-    @abstractmethod
-    def get_feature_importance(self):
+    def get_feature_importance(self, feature_names):
         raise NotImplementedError
-
