@@ -10,10 +10,11 @@ N_CV_SPLITS = 5
 PREPROCESSOR_NAME = "tabular_v1"
 
 MODEL_NAME = "CatBoostRegressor"
+
 TRAINING_RUN_TYPE = "training"
 EVALUATION_RUN_TYPE = "evaluation"
 CV_TYPE = "TimeSeriesSplit"
-REGISTERED_MODEL_NAME = f"{EXPERIMENT_NAME}_{MODEL_NAME}"
+
 
 FILEPATH = "re_data_5_jan_new.csv"
 DATE_COL = "week_start"
