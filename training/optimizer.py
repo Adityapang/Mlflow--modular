@@ -9,13 +9,13 @@ class OptunaOptimizer:
         self.n_trials = n_trials
         self.param_space_fn = param_space_fn
 
-    def optimize(self, X, y,  cat_feature_indices):
+    def optimize(self, X, y, **model_kwargs):
         def objective(trial):
             model_params = self.param_space_fn(trial)
 
             with mlflow.start_run(run_name=f"trial_{trial.number}", nested = True):
                 mlflow.log_params(model_params)
-                score = self.trainer.cross_validate(X, y, model_params,  cat_feature_indices)
+                score = self.trainer.cross_validate(X, y, model_params,  **model_kwargs)
                 mlflow.log_metric("cv_rmse", score)
 
             return score
