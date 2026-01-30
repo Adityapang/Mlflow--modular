@@ -2,9 +2,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.compose import ColumnTransformer
 import numpy as np
 import pandas as pd
+from .base import BasePreprocessor
 
 
-class TabularPreprocessor:
+class TabularPreprocessorV1(BasePreprocessor):
     def __init__(self):
         self.preprocessor = None
         self.num_cols = None
