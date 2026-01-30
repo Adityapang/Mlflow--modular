@@ -3,11 +3,11 @@ from preprocessing.factory import PreprocessorFactory
 from utils.mlflow_helpers import start_mlflow_experiment, register_model_with_data_tags
 from pipelines.train_pipeline import run_training_pipeline
 from pipelines.evaluation_pipeline import run_evaluation_pipeline
-from training.search_space import CatBoostSearchSpace
-from training.evaluator import rmse
+from training.search_space_factory import SearchSpaceFactory
+from training.eval_factory import MetricFactory
 from training.trainer import TimeSeriesTrainer
 from training.optimizer import OptunaOptimizer
-from models.catboost_model import CatBoostModel
+from models.factory import ModelFactory
 from datetime import datetime
 import mlflow
 from sklearn.model_selection import TimeSeriesSplit
@@ -39,7 +39,7 @@ def main():
                                                         return_meta=True,
                                                         test_meta_cols=TEST_META_COLS)
 
-    
+
     pre = PreprocessorFactory.create(PREPROCESSOR_NAME)
     pre.fit(X_train)
     X_train_preprocessed = pre.transform(X_train)
@@ -74,20 +74,27 @@ def main():
 
         tscv = TimeSeriesSplit(n_splits=N_CV_SPLITS)
 
-        param_space_function = lambda trial: CatBoostSearchSpace.optuna(trial = trial,
-                                                                        use_gpu = USE_GPU)
+        metric_fn = MetricFactory.get_metric(MODEL_NAME)
+
+        param_space_function = SearchSpaceFactory.get_search_space(
+            model_name=MODEL_NAME,
+            use_gpu=USE_GPU
+        )
+
+        model_cls, model_kwargs = ModelFactory.get_model(
+            model_name=MODEL_NAME,
+            cat_feature_indices=cat_feature_indices
+        )
 
         final_model, best_cv_rmse, best_params, training_run_id = run_training_pipeline(X_train=X_train_preprocessed,
                                                                   y_train=y_train,
                                                                   param_space_fn=param_space_function,
-                                                                  model_cls=CatBoostModel,
-                                                                  model_kwargs={
-                                                                      "cat_feature_indices": cat_feature_indices
-                                                                  },
+                                                                  model_cls=model_cls,
+                                                                  model_kwargs=model_kwargs,
                                                                   cv=tscv,
                                                                   trainer_cls=TimeSeriesTrainer,
                                                                   optimizer_cls=OptunaOptimizer,
-                                                                  metric_fn=rmse,
+                                                                  metric_fn=metric_fn,
                                                                   model_name=MODEL_NAME,
                                                                   run_type=TRAINING_RUN_TYPE,
                                                                   cv_name=CV_TYPE,
@@ -103,7 +110,7 @@ def main():
                                 y_test = y_test,
                                 X_test_meta=X_test_meta,
                                 model = final_model,
-                                metric_fn=rmse,
+                                metric_fn=metric_fn,
                                 best_cv_rmse=best_cv_rmse,
                                 predictions_path=PREDICTIONS_PATH,
                                 model_name=MODEL_NAME,
