@@ -4,8 +4,10 @@ EXPERIMENT_NAME = "Tamil_Nadu_project"
 MLFLOW_URI = "http://127.0.0.1:5000/"
 
 ROLLING_WINDOW_MONTHS = None  # Keep last 24 months, set to None for all data
-N_OPTUNA_TRIALS = 3
+N_OPTUNA_TRIALS = 2
 N_CV_SPLITS = 5
+
+PREPROCESSOR_LIST = ["tabular_v1"]
 
 MODEL_NAME = "CatBoostRegressor"
 TRAINING_RUN_TYPE = "training"
