@@ -58,7 +58,7 @@ def run_training_pipeline(X_train: pd.DataFrame, y_train: pd.Series,
             params = study.best_params,
             **model_kwargs
         )
-        final_model.train(X_train, y_train)
+        final_model.fit(X_train, y_train)
 
         final_model.log_to_mlflow()
 
