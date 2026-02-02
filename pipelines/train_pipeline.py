@@ -4,6 +4,7 @@ import pandas as pd
 import sklearn
 from config import *
 
+
 def run_training_pipeline(X_train: pd.DataFrame, y_train: pd.Series,
                         param_space_fn,
                         model_cls: abc.ABCMeta,
@@ -53,11 +54,7 @@ def run_training_pipeline(X_train: pd.DataFrame, y_train: pd.Series,
         mlflow.log_metric("best_cv_rmse", best_cv_rmse)
         mlflow.log_params(best_params)
 
-
-        final_model = model_cls(
-            params = study.best_params,
-            **model_kwargs
-        )
+        final_model = model_cls.from_params(best_params, **model_kwargs)
         final_model.fit(X_train, y_train)
 
         final_model.log_to_mlflow()
