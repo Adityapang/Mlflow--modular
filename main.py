@@ -10,6 +10,8 @@ from training.optimizer import OptunaOptimizer
 from models.factory import ModelFactory
 from datetime import datetime
 import mlflow
+from utils.explainability import log_shap_summary
+from utils.artifact_logger import log_parquet
 from sklearn.model_selection import TimeSeriesSplit
 from config import *
 
@@ -23,8 +25,7 @@ def main():
                                          test_df=test_df,
                                          target_col=TARGET_COL)
 
-    save_dataframe_to_csv(train_df, TRAIN_PATH)
-    save_dataframe_to_csv(test_df, TEST_PATH)
+
 
     train_data_hash = get_data_hash(train_df)
     test_data_hash = get_data_hash(test_df)
@@ -46,7 +47,7 @@ def main():
 
     X_test_preprocessed = pre.transform(X_test)
 
-    features_names = pre.get_feature_names()
+    feature_names = pre.get_feature_names()
     cat_feature_indices = pre.get_cat_feature_indices()
 
     experiment = start_mlflow_experiment(mlflow_uri=MLFLOW_URI,
@@ -69,8 +70,8 @@ def main():
         )
 
 
-        mlflow.log_artifact(TRAIN_PATH, artifact_path="data")
-        mlflow.log_artifact(TEST_PATH, artifact_path="data")
+        log_parquet(df = train_df, filename=TRAIN_PATH, artifact_path="data")
+        log_parquet(df=test_df, filename=TEST_PATH, artifact_path="data")
 
         tscv = TimeSeriesSplit(n_splits=N_CV_SPLITS)
 
@@ -102,9 +103,10 @@ def main():
 
 
         if final_model.has_feature_importance():
-            importance_df = final_model.get_feature_importance(feature_names=features_names)
-            save_dataframe_to_csv(importance_df, FEATURE_IMPORTANCE_PATH)
-            mlflow.log_artifact(FEATURE_IMPORTANCE_PATH, artifact_path="feature_importance")
+            importance_df = final_model.get_feature_importance(feature_names=feature_names)
+            importance_df = importance_df[importance_df["feature"] != "Case_Count"]
+            log_parquet(df=importance_df, filename=FEATURE_IMPORTANCE_PATH, artifact_path="feature_importance")
+
 
         test_rmse = run_evaluation_pipeline(X_test=X_test_preprocessed,
                                 y_test = y_test,
@@ -128,6 +130,13 @@ def main():
         )
 
 
+        shap_summary_path, shap_df= log_shap_summary(model_wrapper=final_model,
+                                                     X_sample=X_test_preprocessed,
+                                                     feature_names=feature_names,
+                                                     shap_summary_path=SHAP_SUMMARY_PATH)
+
+        log_parquet(df=shap_df, filename=SHAP_VALUES_PATH, artifact_path="explainability")
+        mlflow.log_artifact(shap_summary_path, artifact_path="explainability")
 
 
 if __name__ == "__main__":
