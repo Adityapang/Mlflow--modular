@@ -3,6 +3,7 @@ import mlflow
 from config import *
 from data.data_loader import save_dataframe_to_csv
 from data.prediction_builder import build_prediction_data
+from utils.artifact_logger import log_parquet
 
 def run_evaluation_pipeline( X_test: pd.DataFrame, y_test: pd.Series,
                              X_test_meta: pd.DataFrame,
@@ -31,8 +32,6 @@ def run_evaluation_pipeline( X_test: pd.DataFrame, y_test: pd.Series,
                                                X_test_meta,
                                                best_cv_rmse,
                                                test_rmse)
-
-        save_dataframe_to_csv(predictions_df, predictions_path)
-        mlflow.log_artifact(predictions_path, artifact_path="predictions")
+        log_parquet(df=predictions_df, filename=predictions_path, artifact_path="predictions")
 
         return test_rmse
