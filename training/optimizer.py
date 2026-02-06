@@ -1,25 +1,28 @@
 import optuna
 import mlflow
-
+from trainer import TimeSeriesTrainer
 
 class OptunaOptimizer:
-    def __init__(self, trainer, param_space_fn, direction: str, n_trials: int):
+    def __init__(self, trainer: TimeSeriesTrainer, param_space_fn, n_trials: int):
         self.trainer = trainer
-        self.direction = direction
-        self.n_trials = n_trials
         self.param_space_fn = param_space_fn
+        self.n_trials = n_trials
 
     def optimize(self, X, y, **model_kwargs):
-        def objective(trial):
-            model_params = self.param_space_fn(trial)
+        metric = self.trainer.metric
 
-            with mlflow.start_run(run_name=f"trial_{trial.number}", nested = True):
-                mlflow.log_params(model_params)
-                score = self.trainer.cross_validate(X, y, model_params,  **model_kwargs)
-                mlflow.log_metric("cv_rmse", score)
+        def objective(trial):
+            params = self.param_space_fn(trial)
+
+            with mlflow.start_run(run_name=f"trial_{trial.number}", nested=True):
+                mlflow.log_params(params)
+
+                score = self.trainer.evaluate_params(X, y, params, **model_kwargs)
+
+                mlflow.log_metric(f"cv_{metric.name}", score)
 
             return score
 
-        study = optuna.create_study(direction=self.direction)
+        study = optuna.create_study(direction=metric.direction)
         study.optimize(objective, n_trials=self.n_trials)
         return study
