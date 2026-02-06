@@ -52,22 +52,27 @@ def extract_data_metadata(df: pd.DataFrame, date_col: str, train: bool = False) 
         return {
             "train_records": len(df),
             "train_date_min": df[date_col].min().strftime("%Y-%m-%d"),
-            "train_date_max": df[date_col].max().strftime("%Y-%m-%d")
+            "train_date_max": df[date_col].max().strftime("%Y-%m-%d"),
+            "train_columns": df.shape[1],
+            "columns": df.columns.tolist()
         }
     else:
         return {
             "test_records": len(df),
             "test_date_min": df[date_col].min().strftime("%Y-%m-%d"),
-            "test_date_max": df[date_col].max().strftime("%Y-%m-%d")
+            "test_date_max": df[date_col].max().strftime("%Y-%m-%d"),
+            "test_columns": df.shape[1],
+            "columns": df.columns.tolist()
         }
 
 
 def split_features_target(df: pd.DataFrame,
                           target_col: str,
                           date_col: str,
+                          label_col: str,
                           return_meta:bool = False,
                           test_meta_cols: list = None)-> Tuple[pd.DataFrame, pd.Series]:
-    X = df.drop(columns=[target_col, date_col], errors="ignore")
+    X = df.drop(columns=[target_col, date_col, label_col], errors="ignore")
     y = df[target_col]
 
     if return_meta:
