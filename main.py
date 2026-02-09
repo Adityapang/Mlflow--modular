@@ -4,7 +4,7 @@ from utils.mlflow_helpers import start_mlflow_experiment, register_model_with_da
 from pipelines.train_pipeline import run_training_pipeline
 from pipelines.evaluation_pipeline import run_evaluation_pipeline
 from training.search_space_factory import SearchSpaceFactory
-from training.eval_factory import MetricFactory
+from training.metric_factory import MetricFactory
 from training.trainer import TimeSeriesTrainer
 from training.optimizer import OptunaOptimizer
 from models.factory import ModelFactory
