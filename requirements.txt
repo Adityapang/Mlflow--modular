@@ -2,3 +2,4 @@ catboost==1.2.8
 mlflow==3.8.1
 optuna==4.7.0
 scikit-learn==1.8.0
+shap==0.50.0
