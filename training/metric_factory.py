@@ -1,4 +1,4 @@
-from training.evaluator import rmse
+from metrics import rmse
 from dataclasses import dataclass
 
 @dataclass(frozen=True)
